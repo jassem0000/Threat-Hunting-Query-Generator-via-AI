@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # Ollama service for local LLM inference
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+    restart: unless-stopped
+
+  # Django backend service
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - ollama
+    environment:
+      - DJANGO_SETTINGS_MODULE=threat_hunter.settings
+    command: >
+      sh -c "
+        python backend/manage.py migrate &&
+        python backend/manage.py runserver 0.0.0.0:8000
+      "
+
+  # Streamlit frontend service
+  frontend:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+    depends_on:
+      - backend
+    command: streamlit run frontend/app.py --server.port=8501 --server.address=0.0.0.0
+
+volumes:
+  ollama:
