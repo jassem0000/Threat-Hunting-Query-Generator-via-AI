@@ -1,0 +1,94 @@
+{
+  "test_cases": [
+    {
+      "id": 1,
+      "description": "Find all failed login attempts from external IP addresses in the last 24 hours",
+      "expected_mitre_technique": "T1110 - Brute Force",
+      "test_scenarios": [
+        {
+          "query_type": "spl",
+          "expected_elements": ["index=", "stats", "count"]
+        },
+        {
+          "query_type": "kql",
+          "expected_elements": ["SecurityEvent", "where", "EventID"]
+        },
+        {
+          "query_type": "dsl",
+          "expected_elements": ["query", "match", "range"]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "description": "Identify suspicious PowerShell activity that may indicate malicious script execution",
+      "expected_mitre_technique": "T1059 - Command and Scripting Interpreter",
+      "test_scenarios": [
+        {
+          "query_type": "spl",
+          "expected_elements": ["index=", "powershell", "EventCode"]
+        },
+        {
+          "query_type": "kql",
+          "expected_elements": ["SecurityEvent", "EventID", "ProcessName"]
+        },
+        {
+          "query_type": "dsl",
+          "expected_elements": ["query", "bool", "must"]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "description": "Detect potential data exfiltration attempts through unusual network traffic patterns",
+      "expected_mitre_technique": "T1041 - Exfiltration Over C2 Channel",
+      "test_scenarios": [
+        {
+          "query_type": "spl",
+          "expected_elements": ["index=", "network", "bytes"]
+        },
+        {
+          "query_type": "kql",
+          "expected_elements": ["NetworkLogs", "where", "Outbound"]
+        },
+        {
+          "query_type": "dsl",
+          "expected_elements": ["query", "range", "filter"]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "description": "Find evidence of lateral movement through compromised accounts",
+      "expected_mitre_technique": "T1078 - Valid Accounts",
+      "test_scenarios": [
+        {
+          "query_type": "spl",
+          "expected_elements": ["index=", "authentication", "user"]
+        },
+        {
+          "query_type": "kql",
+          "expected_elements": ["SecurityEvent", "TargetUserName", "IpAddress"]
+        },
+        {
+          "query_type": "dsl",
+          "expected_elements": ["query", "terms", "aggs"]
+        }
+      ]
+    }
+  ],
+  "validation_rules": {
+    "spl": {
+      "required_commands": ["index", "sourcetype", "stats"],
+      "recommended_patterns": ["|", "by", "earliest"]
+    },
+    "kql": {
+      "required_operators": ["|", "where", "summarize"],
+      "recommended_patterns": ["TimeGenerated", "ago(", "project"]
+    },
+    "dsl": {
+      "required_structure": ["query", "bool", "must"],
+      "recommended_patterns": ["range", "filter", "aggs"]
+    }
+  }
+}
