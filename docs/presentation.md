@@ -6,8 +6,6 @@
 
 #### Higher Institute of Management of Tunis
 
-#### Chaouki BAYOUDHI
-
 #### Academic Year 2025-2026
 
 ---
