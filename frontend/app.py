@@ -28,12 +28,14 @@ st.markdown("""
     }
     .query-container {
         background-color: #f0f2f6;
+        color: #000000;
         border-radius: 5px;
         padding: 15px;
         margin: 10px 0;
     }
     .explanation-container {
         background-color: #e8f4f8;
+        color: #000000;
         border-left: 5px solid #2196f3;
         padding: 15px;
         margin: 10px 0;

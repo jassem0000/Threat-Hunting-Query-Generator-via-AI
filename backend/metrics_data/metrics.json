@@ -1,0 +1,175 @@
+{
+  "queries": [
+    {
+      "id": "query_1764619681420",
+      "timestamp": "2025-12-01T21:08:01.420047",
+      "description": "find failed login attmpet in last 24h",
+      "query_type": "spl",
+      "query": "index=security sourcetype=windows EventCode=4625 [searches for events with EventCode 4625, which is the Windows authentication failure event code] | stats count by user, src_ip",
+      "generation_time_ms": 12132.51,
+      "success": true,
+      "error": null,
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "optimization_suggestions": [
+          "Consider adding time bounds to limit search scope"
+        ]
+      },
+      "mitre_technique": {
+        "id": "T1053",
+        "name": "Scheduled Task/Job",
+        "tactic": "TA0002",
+        "description": "Adversaries may abuse task scheduling functionality.",
+        "detection": "Monitor scheduled task creation and modification.",
+        "keywords": [
+          "scheduled task",
+          "cron",
+          "at",
+          "schtasks"
+        ],
+        "match_score": 1
+      },
+      "execution_result": null
+    },
+    {
+      "id": "query_1764619740042",
+      "timestamp": "2025-12-01T21:09:00.042516",
+      "description": "find failed login attmpet in last 24h",
+      "query_type": "spl",
+      "query": "(index=security sourcetype=windows EventCode=4624 log_level=[ERROR,DEBUG] | stats count by user, src_ip) [search=0..24h] | sort by _time",
+      "generation_time_ms": 6777.64,
+      "success": true,
+      "error": null,
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "optimization_suggestions": []
+      },
+      "mitre_technique": {
+        "id": "T1053",
+        "name": "Scheduled Task/Job",
+        "tactic": "TA0002",
+        "description": "Adversaries may abuse task scheduling functionality.",
+        "detection": "Monitor scheduled task creation and modification.",
+        "keywords": [
+          "scheduled task",
+          "cron",
+          "at",
+          "schtasks"
+        ],
+        "match_score": 1
+      },
+      "execution_result": null
+    },
+    {
+      "id": "query_1764620669237",
+      "timestamp": "2025-12-01T21:24:29.237702",
+      "description": "find failed login attmpet in last 24h",
+      "query_type": "kql",
+      "query": "SecurityEvent | where TimeGenerated >= now() - 1d and EventID == 4625 | summarize count() by TargetUserName, IpAddress",
+      "generation_time_ms": 11717.51,
+      "success": true,
+      "error": null,
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "optimization_suggestions": []
+      },
+      "mitre_technique": {
+        "id": "T1053",
+        "name": "Scheduled Task/Job",
+        "tactic": "TA0002",
+        "description": "Adversaries may abuse task scheduling functionality.",
+        "detection": "Monitor scheduled task creation and modification.",
+        "keywords": [
+          "scheduled task",
+          "cron",
+          "at",
+          "schtasks"
+        ],
+        "match_score": 1
+      },
+      "execution_result": null
+    },
+    {
+      "id": "query_1764621710204",
+      "timestamp": "2025-12-01T21:41:50.204533",
+      "description": "find failed login attmpet in last 24h",
+      "query_type": "dsl",
+      "query": "{\"query\": {\"bool\": {\"must\": [{\"match\": {\"event.code\": \"4625\"}}], \"filter\": [{\"range\": {\"@timestamp\": {\"gte\": \"now-24h\"}}}]}}}",
+      "generation_time_ms": 6486.76,
+      "success": true,
+      "error": null,
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "optimization_suggestions": []
+      },
+      "mitre_technique": {
+        "id": "T1053",
+        "name": "Scheduled Task/Job",
+        "tactic": "TA0002",
+        "description": "Adversaries may abuse task scheduling functionality.",
+        "detection": "Monitor scheduled task creation and modification.",
+        "keywords": [
+          "scheduled task",
+          "cron",
+          "at",
+          "schtasks"
+        ],
+        "match_score": 1
+      },
+      "execution_result": null
+    },
+    {
+      "id": "query_1764622896098",
+      "timestamp": "2025-12-01T22:01:36.098182",
+      "description": "find failed login attmpet in last 24h",
+      "query_type": "dsl",
+      "query": "{\"query\": {\"bool\": {\"must\": [{\"match\": {\"event.code\": \"4625\"}}], \"filter\": [{\"range\": {\"@timestamp\": {\"gte\": \"now-24h\"}}}]}}}",
+      "generation_time_ms": 8458.74,
+      "success": true,
+      "error": null,
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "optimization_suggestions": []
+      },
+      "mitre_technique": {
+        "id": "T1053",
+        "name": "Scheduled Task/Job",
+        "tactic": "TA0002",
+        "description": "Adversaries may abuse task scheduling functionality.",
+        "detection": "Monitor scheduled task creation and modification.",
+        "keywords": [
+          "scheduled task",
+          "cron",
+          "at",
+          "schtasks"
+        ],
+        "match_score": 1
+      },
+      "execution_result": null
+    }
+  ],
+  "summary": {
+    "total_queries": 5,
+    "successful_queries": 5,
+    "failed_queries": 0,
+    "average_generation_time": 9114.63,
+    "average_validation_score": 100.0,
+    "query_types": {
+      "spl": 2,
+      "kql": 1,
+      "dsl": 2
+    },
+    "mitre_mappings": 5
+  },
+  "version": "1.0"
+}
