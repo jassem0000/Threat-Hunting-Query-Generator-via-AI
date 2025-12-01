@@ -156,20 +156,51 @@
         "match_score": 1
       },
       "execution_result": null
+    },
+    {
+      "id": "query_1764623536763",
+      "timestamp": "2025-12-01T22:12:16.763346",
+      "description": "find failed login attmpet in last 24h",
+      "query_type": "spl",
+      "query": "index=security sourcetype=windows EventCode=4625 | stats count by _time, user, src_ip",
+      "generation_time_ms": 13109.63,
+      "success": true,
+      "error": null,
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "optimization_suggestions": []
+      },
+      "mitre_technique": {
+        "id": "T1053",
+        "name": "Scheduled Task/Job",
+        "tactic": "TA0002",
+        "description": "Adversaries may abuse task scheduling functionality.",
+        "detection": "Monitor scheduled task creation and modification.",
+        "keywords": [
+          "scheduled task",
+          "cron",
+          "at",
+          "schtasks"
+        ],
+        "match_score": 1
+      },
+      "execution_result": null
     }
   ],
   "summary": {
-    "total_queries": 5,
-    "successful_queries": 5,
+    "total_queries": 6,
+    "successful_queries": 6,
     "failed_queries": 0,
-    "average_generation_time": 9114.63,
+    "average_generation_time": 9780.47,
     "average_validation_score": 100.0,
     "query_types": {
-      "spl": 2,
+      "spl": 3,
       "kql": 1,
       "dsl": 2
     },
-    "mitre_mappings": 5
+    "mitre_mappings": 6
   },
   "version": "1.0"
 }
