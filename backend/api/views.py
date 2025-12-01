@@ -10,6 +10,7 @@ from datetime import datetime
 from .query_generator import QueryGenerator
 from .mitre_attack import MitreAttackIntegration
 from .validators import QueryValidator
+from .change_notifier import get_notifier
 
 # Try to import new components (they may not be available initially)
 try:
@@ -91,18 +92,25 @@ class GenerateQueryView(View):
                     mitre_id = mitre_technique.get('id') if mitre_technique else None
                     mitre_name = mitre_technique.get('name') if mitre_technique else None
                     
-                    QueryLibrary.objects.create(
+                    query_obj = QueryLibrary.objects.create(
                         title=description[:100] + "..." if len(description) > 100 else description,
                         description=description,
                         query_type=query_type,
                         query=query_result["query"],
                         mitre_technique_id=mitre_id,
                         mitre_technique_name=mitre_name,
-                        is_valid=validation_result.get('is_valid', True),
+                        is_valid=validation_result.get('valid', True),
                         validation_errors=validation_result.get('errors', []),
                         validation_warnings=validation_result.get('warnings', []),
+                        optimization_suggestions=validation_result.get('optimization_suggestions', []),
                         created_by='system'
                     )
+                    
+                    # 3. Notify dashboard about new query
+                    notifier = get_notifier()
+                    total_queries = QueryLibrary.objects.count()
+                    notifier.notify_query_added(query_obj.id, total_queries)
+                    
                 except Exception as e:
                     print(f"Error saving to library/metrics: {e}")
             
@@ -313,6 +321,33 @@ class TestSIEMConnectionView(View):
         except Exception as e:
             return JsonResponse({
                 'error': f'Error testing connection: {str(e)}'
+            }, status=500)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CheckChangesView(View):
+    """Check if there are new changes (for dashboard refresh)"""
+    
+    def get(self, request):
+        """Check for changes since last check"""
+        try:
+            last_check = request.GET.get('last_check')
+            notifier = get_notifier()
+            change_info = notifier.get_change_info()
+            
+            has_changes = False
+            if last_check and change_info.get('last_change'):
+                has_changes = change_info.get('last_change') > last_check
+            
+            return JsonResponse({
+                'has_changes': has_changes,
+                'last_change': change_info.get('last_change'),
+                'query_count': change_info.get('query_count', 0),
+                'change_type': change_info.get('change_type')
+            })
+        except Exception as e:
+            return JsonResponse({
+                'error': f'Error checking changes: {str(e)}'
             }, status=500)
 
 

@@ -187,20 +187,422 @@
         "match_score": 1
       },
       "execution_result": null
+    },
+    {
+      "id": "query_1764625411385",
+      "timestamp": "2025-12-01T22:43:31.385935",
+      "description": "Search for PowerShell commands containing \u2018-enc\u2019 or \u2018-encodedcommand\u2019",
+      "query_type": "spl",
+      "query": "(| where searchvalue contains '-enc' or searchvalue contains '-encodedcommand') | stats count",
+      "generation_time_ms": 13409.43,
+      "success": true,
+      "error": null,
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "optimization_suggestions": [
+          "Consider adding time bounds to limit search scope"
+        ]
+      },
+      "mitre_technique": {
+        "id": "T1059",
+        "name": "Command and Scripting Interpreter",
+        "tactic": "TA0002",
+        "description": "Adversaries may abuse command and script interpreters to execute commands.",
+        "detection": "Monitor process execution, especially PowerShell, CMD, and bash activity.",
+        "keywords": [
+          "PowerShell",
+          "cmd",
+          "bash",
+          "script",
+          "command line",
+          "shell"
+        ],
+        "match_score": 2
+      },
+      "execution_result": null
+    },
+    {
+      "id": "query_1764627252818",
+      "timestamp": "2025-12-01T23:14:12.818840",
+      "description": "Search for PowerShell commands containing \u2018-enc\u2019 or \u2018-encodedcommand\u2019",
+      "query_type": "spl",
+      "query": "(search index=powershell | match -enc or -encodedcommand)",
+      "generation_time_ms": 6600.49,
+      "success": true,
+      "error": null,
+      "validation": {
+        "valid": false,
+        "errors": [
+          "Unknown SPL command: 'match'"
+        ],
+        "warnings": [],
+        "optimization_suggestions": [
+          "Add time bounds (earliest=/latest=) to improve search performance"
+        ]
+      },
+      "mitre_technique": {
+        "id": "T1059",
+        "name": "Command and Scripting Interpreter",
+        "tactic": "TA0002",
+        "description": "Adversaries may abuse command and script interpreters to execute commands.",
+        "detection": "Monitor process execution, especially PowerShell, CMD, and bash activity.",
+        "keywords": [
+          "PowerShell",
+          "cmd",
+          "bash",
+          "script",
+          "command line",
+          "shell"
+        ],
+        "match_score": 2
+      },
+      "execution_result": null
+    },
+    {
+      "id": "query_1764627288312",
+      "timestamp": "2025-12-01T23:14:48.312205",
+      "description": "Find all events where the source IP is 45.67.12.3 in the last 24 hours.",
+      "query_type": "spl",
+      "query": "index=security sourcetype=windows src_ip=45.67.12.3 | stats count by _time",
+      "generation_time_ms": 2124.11,
+      "success": true,
+      "error": null,
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "optimization_suggestions": [
+          "Add time bounds (earliest=/latest=) to improve search performance"
+        ]
+      },
+      "mitre_technique": {
+        "id": "T1190",
+        "name": "Exploit Public-Facing Application",
+        "tactic": "TA0001",
+        "description": "Adversaries may attempt to exploit a weakness in an Internet-facing host or system.",
+        "detection": "Monitor application logs for exploitation attempts. WAF logs can reveal exploitation patterns.",
+        "keywords": [
+          "exploit",
+          "vulnerability",
+          "CVE",
+          "public-facing",
+          "web application",
+          "RCE"
+        ],
+        "match_score": 1
+      },
+      "execution_result": null
+    },
+    {
+      "id": "query_1764627303197",
+      "timestamp": "2025-12-01T23:15:03.197428",
+      "description": "Find all events where the source IP is 45.67.12.3 in the last 24 hours.",
+      "query_type": "kql",
+      "query": "NetworkSecurityEvent | where SourceIp == \"45.67.12.3\" and TimeGenerated > now() - 1h",
+      "generation_time_ms": 4670.18,
+      "success": true,
+      "error": null,
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "optimization_suggestions": []
+      },
+      "mitre_technique": {
+        "id": "T1190",
+        "name": "Exploit Public-Facing Application",
+        "tactic": "TA0001",
+        "description": "Adversaries may attempt to exploit a weakness in an Internet-facing host or system.",
+        "detection": "Monitor application logs for exploitation attempts. WAF logs can reveal exploitation patterns.",
+        "keywords": [
+          "exploit",
+          "vulnerability",
+          "CVE",
+          "public-facing",
+          "web application",
+          "RCE"
+        ],
+        "match_score": 1
+      },
+      "execution_result": null
+    },
+    {
+      "id": "query_1764627314681",
+      "timestamp": "2025-12-01T23:15:14.681530",
+      "description": "Find all events where the source IP is 45.67.12.3 in the last 24 hours.",
+      "query_type": "dsl",
+      "query": "{\"query\": {\"bool\": {\"must\": [{\"match\": {\"src.ip\": \"45.67.12.3\"}}], \"filter\": [{\"range\": {\"@timestamp\": {\"gte\": \"now-24h\"}}}]}}}",
+      "generation_time_ms": 3652.65,
+      "success": true,
+      "error": null,
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "optimization_suggestions": [
+          "Specify 'size' parameter to limit results"
+        ]
+      },
+      "mitre_technique": {
+        "id": "T1190",
+        "name": "Exploit Public-Facing Application",
+        "tactic": "TA0001",
+        "description": "Adversaries may attempt to exploit a weakness in an Internet-facing host or system.",
+        "detection": "Monitor application logs for exploitation attempts. WAF logs can reveal exploitation patterns.",
+        "keywords": [
+          "exploit",
+          "vulnerability",
+          "CVE",
+          "public-facing",
+          "web application",
+          "RCE"
+        ],
+        "match_score": 1
+      },
+      "execution_result": null
+    },
+    {
+      "id": "query_1764627334287",
+      "timestamp": "2025-12-01T23:15:34.287599",
+      "description": "Find cases where Microsoft Word spawns a PowerShell child process.",
+      "query_type": "dsl",
+      "query": "",
+      "generation_time_ms": 4780.21,
+      "success": false,
+      "error": "'dict' object has no attribute 'strip'",
+      "validation": {
+        "valid": false,
+        "errors": [],
+        "warnings": [],
+        "optimization_suggestions": []
+      },
+      "mitre_technique": null,
+      "execution_result": null
+    },
+    {
+      "id": "query_1764627348745",
+      "timestamp": "2025-12-01T23:15:48.745789",
+      "description": "Find cases where Microsoft Word spawns a PowerShell child process.",
+      "query_type": "spl",
+      "query": "(EventCode=4625 AND EventName=1126 OR EventData LIKE '*powershell*' OR EventData LIKE '*cmd*') | stats count by process_id, user",
+      "generation_time_ms": 6010.6,
+      "success": true,
+      "error": null,
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "Query should typically start with 'search' or index/source specification"
+        ],
+        "optimization_suggestions": [
+          "Specify index to narrow search scope",
+          "Add time bounds (earliest=/latest=) to improve search performance"
+        ]
+      },
+      "mitre_technique": {
+        "id": "T1059",
+        "name": "Command and Scripting Interpreter",
+        "tactic": "TA0002",
+        "description": "Adversaries may abuse command and script interpreters to execute commands.",
+        "detection": "Monitor process execution, especially PowerShell, CMD, and bash activity.",
+        "keywords": [
+          "PowerShell",
+          "cmd",
+          "bash",
+          "script",
+          "command line",
+          "shell"
+        ],
+        "match_score": 2
+      },
+      "execution_result": null
+    },
+    {
+      "id": "query_1764627366509",
+      "timestamp": "2025-12-01T23:16:06.509322",
+      "description": "Find cases where Microsoft Word spawns a PowerShell child process.",
+      "query_type": "kql",
+      "query": "Process | where Name == \"PowerShell\" and ParentProcessId hasChildren()",
+      "generation_time_ms": 2984.5,
+      "success": true,
+      "error": null,
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "optimization_suggestions": [
+          "Add time filtering (e.g., | where TimeGenerated > ago(24h)) for better performance"
+        ]
+      },
+      "mitre_technique": {
+        "id": "T1059",
+        "name": "Command and Scripting Interpreter",
+        "tactic": "TA0002",
+        "description": "Adversaries may abuse command and script interpreters to execute commands.",
+        "detection": "Monitor process execution, especially PowerShell, CMD, and bash activity.",
+        "keywords": [
+          "PowerShell",
+          "cmd",
+          "bash",
+          "script",
+          "command line",
+          "shell"
+        ],
+        "match_score": 2
+      },
+      "execution_result": null
+    },
+    {
+      "id": "query_1764629461056",
+      "timestamp": "2025-12-01T23:51:01.056902",
+      "description": "Look for any file created with SHA256 hash d8c8b... in the last week.",
+      "query_type": "spl",
+      "query": "# Failed to generate query. Please check Ollama installation and model availability.",
+      "generation_time_ms": 15341.51,
+      "success": true,
+      "error": null,
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "Query should typically start with 'search' or index/source specification"
+        ],
+        "optimization_suggestions": [
+          "Add time bounds (earliest=/latest=) to improve search performance",
+          "Specify index to narrow search scope"
+        ]
+      },
+      "mitre_technique": {
+        "id": "T1053",
+        "name": "Scheduled Task/Job",
+        "tactic": "TA0002",
+        "description": "Adversaries may abuse task scheduling functionality.",
+        "detection": "Monitor scheduled task creation and modification.",
+        "keywords": [
+          "scheduled task",
+          "cron",
+          "at",
+          "schtasks"
+        ],
+        "match_score": 1
+      },
+      "execution_result": null
+    },
+    {
+      "id": "query_1764630822204",
+      "timestamp": "2025-12-02T00:13:42.204251",
+      "description": "Look for any file created with SHA256 hash d8c8b... in the last week.",
+      "query_type": "dsl",
+      "query": "{\"query\": {\"bool\": {\"must\": [{\"match\": {\"file.sha256**: \"d8c8b...\"}}], \"filter\": [{\"range\": {\"@timestamp\": {\"gte\": \"now-7d\"}}}]}}}",
+      "generation_time_ms": 7563.76,
+      "success": true,
+      "error": null,
+      "validation": {
+        "valid": false,
+        "errors": [
+          "Invalid JSON structure: Expecting ':' delimiter: line 1 column 58 (char 57) at position 57"
+        ],
+        "warnings": [],
+        "optimization_suggestions": []
+      },
+      "mitre_technique": {
+        "id": "T1053",
+        "name": "Scheduled Task/Job",
+        "tactic": "TA0002",
+        "description": "Adversaries may abuse task scheduling functionality.",
+        "detection": "Monitor scheduled task creation and modification.",
+        "keywords": [
+          "scheduled task",
+          "cron",
+          "at",
+          "schtasks"
+        ],
+        "match_score": 1
+      },
+      "execution_result": null
+    },
+    {
+      "id": "query_1764630911337",
+      "timestamp": "2025-12-02T00:15:11.337183",
+      "description": "Look for any file created with SHA256 hash d8c8b... in the last week.",
+      "query_type": "kql",
+      "query": "Files | where FileHash == 'd8c8b...' and LastAccessTime > ago(1w) | summarize count() by CreatedDate",
+      "generation_time_ms": 5695.85,
+      "success": true,
+      "error": null,
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "optimization_suggestions": []
+      },
+      "mitre_technique": {
+        "id": "T1053",
+        "name": "Scheduled Task/Job",
+        "tactic": "TA0002",
+        "description": "Adversaries may abuse task scheduling functionality.",
+        "detection": "Monitor scheduled task creation and modification.",
+        "keywords": [
+          "scheduled task",
+          "cron",
+          "at",
+          "schtasks"
+        ],
+        "match_score": 1
+      },
+      "execution_result": null
+    },
+    {
+      "id": "query_1764631151893",
+      "timestamp": "2025-12-02T00:19:11.893808",
+      "description": "Show DLLs loaded by processes that normally don't load them",
+      "query_type": "spl",
+      "query": "# Failed to generate query. Please check Ollama installation and model availability.",
+      "generation_time_ms": 7430.44,
+      "success": true,
+      "error": null,
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "Query should typically start with 'search' or index/source specification"
+        ],
+        "optimization_suggestions": [
+          "Specify index to narrow search scope",
+          "Add time bounds (earliest=/latest=) to improve search performance"
+        ]
+      },
+      "mitre_technique": {
+        "id": "T1053",
+        "name": "Scheduled Task/Job",
+        "tactic": "TA0002",
+        "description": "Adversaries may abuse task scheduling functionality.",
+        "detection": "Monitor scheduled task creation and modification.",
+        "keywords": [
+          "scheduled task",
+          "cron",
+          "at",
+          "schtasks"
+        ],
+        "match_score": 1
+      },
+      "execution_result": null
     }
   ],
   "summary": {
-    "total_queries": 6,
-    "successful_queries": 6,
-    "failed_queries": 0,
-    "average_generation_time": 9780.47,
-    "average_validation_score": 100.0,
+    "total_queries": 18,
+    "successful_queries": 17,
+    "failed_queries": 1,
+    "average_generation_time": 7719.25,
+    "average_validation_score": 83.33,
     "query_types": {
-      "spl": 3,
-      "kql": 1,
-      "dsl": 2
+      "spl": 9,
+      "kql": 4,
+      "dsl": 5
     },
-    "mitre_mappings": 6
+    "mitre_mappings": 17
   },
   "version": "1.0"
 }

@@ -89,9 +89,17 @@ backend_url = st.sidebar.text_input(
     help="URL of the backend API service"
 )
 
-# Add refresh button
-if st.sidebar.button("🔄 Refresh Data"):
+# Add manual refresh button
+st.sidebar.markdown("---")
+st.sidebar.subheader("🔄 Refresh")
+
+if st.sidebar.button("🔄 Refresh Now", use_container_width=True, type="primary"):
     st.rerun()
+
+st.sidebar.info("💡 Click 'Refresh Now' to update with latest queries")
+
+
+
 
 # Helper functions
 def fetch_metrics():
@@ -138,6 +146,10 @@ def check_backend():
 # Check backend status
 backend_available = check_backend()
 
+# Initialize last_query_count for notifications
+if 'last_query_count' not in st.session_state:
+    st.session_state.last_query_count = 0
+
 if not backend_available:
     st.error(f"❌ Cannot connect to backend at {backend_url}")
     st.info("Please ensure the Django backend is running: `cd backend && python manage.py runserver`")
@@ -146,6 +158,14 @@ if not backend_available:
 # Fetch data
 metrics_data = fetch_metrics()
 queries_data = fetch_queries()
+
+# Check for new queries and show notification
+if queries_data:
+    current_count = queries_data.get('count', 0)
+    if st.session_state.last_query_count > 0 and current_count > st.session_state.last_query_count:
+        new_queries = current_count - st.session_state.last_query_count
+        st.toast(f"🎉 {new_queries} new {'query' if new_queries == 1 else 'queries'} detected!", icon="✨")
+    st.session_state.last_query_count = current_count
 mitre_data = fetch_mitre_techniques()
 
 # Tabs
@@ -199,18 +219,81 @@ with tab1:
         
         # Time series data
         time_series = metrics_data.get('time_series', {})
+        st.subheader("Query Generation Trend")
+        
         if time_series and time_series.get('timestamps'):
-            st.subheader("Query Generation Trend")
+            timestamps = time_series.get('timestamps', [])
+            counts = time_series.get('counts', [])
+            success_counts = time_series.get('success_counts', [])
             
-            df_time = pd.DataFrame({
-                'Timestamp': time_series['timestamps'],
-                'Total Queries': time_series['counts'],
-                'Successful': time_series['success_counts']
-            })
-            
-            fig = px.line(df_time, x='Timestamp', y=['Total Queries', 'Successful'],
-                         title='Queries Generated Over Time')
-            st.plotly_chart(fig, use_container_width=True)
+            # Debug: Check data validity
+            if len(timestamps) == 0:
+                st.info("ℹ️ No time series data available yet. Generate more queries to see trends.")
+            elif len(timestamps) != len(counts) or len(timestamps) != len(success_counts):
+                st.warning(f"⚠️ Data mismatch: {len(timestamps)} timestamps, {len(counts)} counts, {len(success_counts)} success counts")
+            else:
+                try:
+                    # Create DataFrame
+                    df_time = pd.DataFrame({
+                        'Timestamp': pd.to_datetime(timestamps),
+                        'Total Queries': counts,
+                        'Successful': success_counts
+                    })
+                    
+                    # Sort by timestamp
+                    df_time = df_time.sort_values('Timestamp')
+                    
+                    # Create line chart with Plotly Graph Objects (more control)
+                    fig = go.Figure()
+                    
+                    fig.add_trace(go.Scatter(
+                        x=df_time['Timestamp'],
+                        y=df_time['Total Queries'],
+                        mode='lines+markers',
+                        name='Total Queries',
+                        line=dict(color='#1f77b4', width=2),
+                        marker=dict(size=8)
+                    ))
+                    
+                    fig.add_trace(go.Scatter(
+                        x=df_time['Timestamp'],
+                        y=df_time['Successful'],
+                        mode='lines+markers',
+                        name='Successful',
+                        line=dict(color='#2ca02c', width=2),
+                        marker=dict(size=8)
+                    ))
+                    
+                    fig.update_layout(
+                        title='Queries Generated Over Time',
+                        xaxis_title='Timestamp',
+                        yaxis_title='Number of Queries',
+                        hovermode='x unified',
+                        showlegend=True,
+                        height=400
+                    )
+                    
+                    st.plotly_chart(fig, use_container_width=True)
+                    
+                    # Show data table below chart
+                    with st.expander("📊 View Data Table"):
+                        st.dataframe(df_time, use_container_width=True, hide_index=True)
+                        
+                except Exception as e:
+                    st.error(f"Error creating chart: {str(e)}")
+                    st.write("**Raw data:**")
+                    st.json({
+                        'timestamps': timestamps[:5],  # Show first 5
+                        'counts': counts[:5],
+                        'success_counts': success_counts[:5]
+                    })
+        else:
+            # Check if we have queries but no time series
+            if summary.get('total_queries', 0) > 0:
+                st.warning("⚠️ Queries exist but time series data is not available. This might be a data collection issue.")
+                st.info("Try generating a new query to refresh the time series data.")
+            else:
+                st.info("ℹ️ No queries generated yet. Generate some queries to see trends over time.")
         
         # Error distribution
         if analytics.get('error_distribution'):
@@ -261,8 +344,41 @@ with tab2:
         if query_type_filter != "All":
             df_queries = df_queries[df_queries['query_type'] == query_type_filter]
         
-        # Display columns
-        display_cols = ['id', 'title', 'query_type', 'mitre_technique_id', 'created_at', 'is_valid']
+        # Add validation status with emoji - comprehensive check
+        if 'is_valid' in df_queries.columns:
+            # A query is truly valid only if is_valid=True AND no validation_errors exist
+            def get_validation_status(row):
+                has_errors = row.get('validation_errors') and len(row.get('validation_errors', [])) > 0
+                has_warnings = row.get('validation_warnings') and len(row.get('validation_warnings', [])) > 0
+                is_valid = row.get('is_valid', False)
+                
+                if has_errors or not is_valid:
+                    return '❌ Invalid'
+                elif has_warnings:
+                    return '⚠️ Valid (Warnings)'
+                else:
+                    return '✅ Valid'
+            
+            df_queries['validation_status'] = df_queries.apply(get_validation_status, axis=1)
+        
+        # Add warning/suggestion counts
+        if 'validation_warnings' in df_queries.columns:
+            df_queries['warnings_count'] = df_queries['validation_warnings'].apply(
+                lambda x: len(x) if isinstance(x, list) else 0
+            )
+        
+        if 'optimization_suggestions' in df_queries.columns:
+            df_queries['suggestions_count'] = df_queries['optimization_suggestions'].apply(
+                lambda x: len(x) if isinstance(x, list) else 0
+            )
+        
+        # Display columns - include counts
+        display_cols = ['id', 'title', 'query_type', 'mitre_technique_id', 'created_at', 'validation_status']
+        if 'warnings_count' in df_queries.columns:
+            display_cols.append('warnings_count')
+        if 'suggestions_count' in df_queries.columns:
+            display_cols.append('suggestions_count')
+        
         available_cols = [col for col in display_cols if col in df_queries.columns]
         
         st.dataframe(
@@ -275,11 +391,82 @@ with tab2:
                 'query_type': 'Type',
                 'mitre_technique_id': 'MITRE',
                 'created_at': 'Created',
-                'is_valid': st.column_config.CheckboxColumn('Valid')
+                'validation_status': 'Validation',
+                'warnings_count': st.column_config.NumberColumn('⚠️ Warnings', help="Number of validation warnings"),
+                'suggestions_count': st.column_config.NumberColumn('💡 Suggestions', help="Number of optimization suggestions")
             }
         )
         
         st.info(f"📊 Showing {len(df_queries)} of {len(queries)} queries")
+        
+        # Add comprehensive validation details section
+        st.subheader("🔍 Query Details")
+        
+        # Show statistics
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            valid_count = len(df_queries[df_queries['validation_status'] == '✅ Valid'])
+            st.metric("✅ Valid", valid_count)
+        with col2:
+            warning_count = len(df_queries[df_queries['validation_status'] == '⚠️ Valid (Warnings)'])
+            st.metric("⚠️ With Warnings", warning_count)
+        with col3:
+            invalid_count = len(df_queries[df_queries['validation_status'] == '❌ Invalid'])
+            st.metric("❌ Invalid", invalid_count)
+        with col4:
+            total_warnings = df_queries['warnings_count'].sum() if 'warnings_count' in df_queries.columns else 0
+            st.metric("Total Warnings", int(total_warnings))
+        
+        # Filter queries with issues (errors or warnings)
+        queries_with_issues = df_queries[
+            (df_queries['validation_status'] == '❌ Invalid') | 
+            (df_queries['validation_status'] == '⚠️ Valid (Warnings)')
+        ]
+        
+        if not queries_with_issues.empty:
+            st.warning(f"⚠️ {len(queries_with_issues)} queries have validation issues")
+            
+            with st.expander(f"Show Query Details ({len(queries_with_issues)} queries)"):
+                for idx, row in queries_with_issues.iterrows():
+                    # Header with status emoji
+                    status_emoji = "❌" if row['validation_status'] == '❌ Invalid' else "⚠️"
+                    st.markdown(f"### {status_emoji} Query ID: {row['id']} - {row['title']}")
+                    
+                    # Show query type and MITRE
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.write(f"**Type:** {row['query_type'].upper()}")
+                    with col2:
+                        if row.get('mitre_technique_id'):
+                            st.write(f"**MITRE:** {row['mitre_technique_id']}")
+                    
+                    # Show validation errors
+                    if 'validation_errors' in row and row['validation_errors']:
+                        st.error("**❌ Validation Errors:**")
+                        for i, error in enumerate(row['validation_errors'], 1):
+                            st.write(f"{i}. {error}")
+                    
+                    # Show validation warnings
+                    if 'validation_warnings' in row and row['validation_warnings']:
+                        st.warning("**⚠️ Validation Warnings:**")
+                        for i, warning in enumerate(row['validation_warnings'], 1):
+                            st.write(f"{i}. {warning}")
+                    
+                    # Show optimization suggestions
+                    if 'optimization_suggestions' in row and row['optimization_suggestions']:
+                        st.info("**💡 Optimization Suggestions:**")
+                        for i, suggestion in enumerate(row['optimization_suggestions'], 1):
+                            st.write(f"{i}. {suggestion}")
+                    
+                    # Show the query itself - use markdown instead of nested expander
+                    if 'query' in row:
+                        st.markdown("**📝 Query:**")
+                        st.code(row['query'], language='sql' if row['query_type'] in ['spl', 'kql'] else 'json')
+                    
+                    st.divider()
+        else:
+            st.success("✅ All queries are valid with no warnings!")
+        
         
     else:
         st.warning("⚠️ No saved queries yet!")

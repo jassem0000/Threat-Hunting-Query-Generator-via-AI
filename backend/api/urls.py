@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     GenerateQueryView, MitreTechniquesView, HealthCheckView,
     PerformanceMetricsView, QueryLibraryView, SIEMConnectionView,
-    TestSIEMConnectionView, ExecuteQueryView
+    TestSIEMConnectionView, ExecuteQueryView, CheckChangesView
 )
 
 urlpatterns = [
@@ -16,6 +16,9 @@ urlpatterns = [
     
     # Query Library
     path('queries', QueryLibraryView.as_view(), name='query_library'),
+    
+    # Change detection for dashboard
+    path('check-changes', CheckChangesView.as_view(), name='check_changes'),
     
     # SIEM Integration
     path('siem/connections', SIEMConnectionView.as_view(), name='siem_connections'),
