@@ -212,3 +212,6 @@ class QueryExecutionLog(models.Model):
         ordering = ['-executed_at']
         verbose_name = 'Query Execution Log'
         verbose_name_plural = 'Query Execution Logs'
+from django.db import models
+
+# Create your models here.
